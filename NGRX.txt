@@ -1,0 +1,297 @@
+NGRX 
+By Programming with Harsh
+
+Redux:
+Open source JS library, use for managing application state.
+
+Redux Principals
+	1. Store : state mange krta h
+	2. Actions : state read only hoga, change by dispatch action
+	3. Reducers : changes are made using functions called Reducers
+---
+
+NGRX me store milta h
+Jisse hm state management use kr skte h
+--
+
+NGRX State Management Lifecycle:
+https://ngrx.io/generated/images/guide/store/state-management-lifecycle.png
+
+agr data lana ho to Store se la skte h SELECTOR k through.
+
+Reducer:
+Jo bhi changes honge store me, usko Reducer manage krega
+
+2 parameter lega
+Action me jo data hoga wo milega
+--
+
+Effects:
+jab use krenge jb hmare pas multiple actions honge.
+
+jab services use krna h tb effects use kr skte h.
+
+-----------
+=========
+Video - 2
+=========
+
+NGRX Setup
+
+Angular Cli
+
+npm install @ngrx/{store,effects,entity,store-devtools}
+npm i @ngrx/schematics -g
+ng add @ngrx/schematics
+	y
+
+1. Store
+ng generate store State --root --module app.module.ts
+
+2. Action
+ng generate action User
+	y
+	n
+
+3. Reducer
+ng generate  reducer User --reducers reducers/index.ts
+	y
+	n
+
+4. Selector
+ng generate selector User
+
+5. effect
+ng generate effect User --root -m app.module.ts
+	y
+	n
+
+-----------------------
+=======
+Video-3
+=======
+
+NGRX Store and Debugging Dev tool:
+
+user.ts
+  export interface IUser {
+    "balance": string,
+    "picture": string,
+    "age": number,
+    "name": string,
+    "gender": string,
+    "company": string,
+    "email": string
+  }
+
+--
+
+ab state define krenge
+
+user.reducer.ts
+
+	import { IUser } from './user';
+
+	export interface State {
+ 	 	users: IUser[],
+  		error: string
+	}
+
+--
+
+ab initial Value define krenge
+
+	export const userFeatureKey = 'usersState';
+
+	export const initialState: State = {
+  		users: [],
+  		error: ''
+	};
+
+----
+
+Debugger install krlo
+redux dev tools chrome extension
+
+Or chaho to
+NGRX Store DevTools bhi install kr skte h.
+
+--
+
+=========
+Video - 4
+=========
+
+Action and Reducer
+
+user.actions.ts
+	import {IUser } from './user';
+	
+	export class LoadUsersSuccess implements Action {
+ 		 readonly type = UserActionTypes.LoadUsersSuccess;
+		  constructor(public payload: { data: IUser[] }) { }
+	}
+
+isme banate h k jb user Load ho tb kya ho
+Success pr kya ho
+and fail pr kya ho
+
+----
+
+Reducer:
+2 parameter leta h
+	state, action
+-
+
+ab cases likhenge isme
+-
+
+user.reducer.ts
+
+	import { IUser } from './user';
+	import { UserActions, UserActionTypes } from './user.actions';
+
+ export function reducer(state = initialState, action: UserActions): State {
+  switch (action.type) {
+
+    case UserActionTypes.LoadUsers:
+      return {
+        ...state
+      }
+
+    case UserActionTypes.LoadUsersSuccess:
+      return {
+        ...state,
+        users: action.payload.data,
+        error: ''
+      }
+
+    case UserActionTypes.LoadUsersFailure:
+      return {
+        ...state,
+        users: [],
+        error: action.payload.error
+      }
+
+    default:
+      return state;
+  }
+	
+------------
+
+=========
+Video - 5
+=========
+
+Selector and Component in NGRX:
+
+Ab selector ko banyenge then comp me use krenge
+-
+
+user.selector.ts
+
+import { createFeatureSelector, createSelector } from '@ngrx/store';
+import { State } from './user.reducer'
+
+const getUserFeatureState = createFeatureSelector<State>('usersState');
+
+export const getUsers = createSelectot(
+	getUserFeatureState,
+	state => state.users
+)
+
+export const getError = createSelectot(
+	getUserFeatureState,
+	state => state.error
+)
+
+-----------
+
+users.component.ts
+
+import { Store, select } from '@ngrx/store';
+import * as UserActions from '../user.actions';
+import * as fromUser from '../user.selector'; 
+
+constructor(private userService: Userservice, private store: Store) { }
+
+ngOnInit(): void {
+	this.store.dispatch(new UserActions.LoadUsers());  #action dispatch
+	
+	this.store.pipe(select(fromUser.getUsers)).subscribe(
+		users => {
+			this.users = users;
+		}
+	)
+}
+
+----
+
+user.reducer.ts
+
+export const initialStatw=e: State = {
+	users: [{
+		"balance": "$656",
+		"age":23,
+		"gender": "male"	
+	}],
+	error: ''
+}
+
+---------------------------------------------------------
+
+=========
+Video - 6
+=========
+
+Effects in NGRX
+
+user.effects.ts
+
+import { Observable, of} from 'rxjs';
+import { Action } from '@ngrx/store';
+import * as UserActions from '../user.actions';
+import { UserService } from './user.service';
+import { mergeMap, map, catchError} from 'rxjs/operators';
+
+constructor(private actions$: Actions, private userServices: UserService) { }
+
+@Effect()
+loadUsers$: Observable<Action> = this.actions$.pipe(
+	ofType(userActions.UserActionTypes.LoadUsers),
+	mergeMap(
+	  action => this.userService=.getUsers().pipe(
+		map(users => (new userActions.LoadUsersSuccess({data: users}))),
+		catchError(err => of(new userActions.LoadUsersFailure({error: err})))	
+	  )
+	)
+)
+-------
+
+user.reducer.ts
+
+user ka hard coded data hata do - blank krdo
+object pura uda do
+
+----
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
